@@ -140,15 +140,31 @@ function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
   return { width: srcWidth * ratio, height: srcHeight * ratio };
 }
 
+function antialias(target) {
+  let c = document.createElement('canvas'),
+    ctx = c.getContext('2d');
+  c.width = target.width * 0.75;
+  c.height = target.height * 0.75;
+  ctx.drawImage(target, 0, 0, c.width, c.height);
+  return c;
+}
+
 function render() {
-  onScreenCtx.drawImage(offScreen, 0, 0, onScreen.width, onScreen.height);
+  const steps = Math.ceil(Math.log(offScreen.width / onScreen.width) / Math.log(2)) * 2;
+
+  let oc = offScreen;
+  for (let i = 0; i < (steps - 1); i++) {
+    oc = antialias(oc);
+  }
+
+  onScreenCtx.drawImage(oc, 0, 0, onScreen.width, onScreen.height);
 }
 
 function onWindowResize() {
   let ratio = calculateAspectRatioFit(offScreen.width, offScreen.height, window.innerWidth, window.innerHeight);
 
-  onScreen.width = ratio.width;
-  onScreen.height = ratio.height;
+  onScreen.width = Math.min(offScreen.width, ratio.width);
+  onScreen.height = Math.min(offScreen.height, ratio.height);
 
   render();
 }
@@ -236,8 +252,7 @@ Object.keys(jsondata)
         } else {
           ctx.globalCompositeOperation = 'source-over';
         }
-
-        ctx.drawImage(selectedLayerImage, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(selectedLayerImage, 0, 0, offScreen.width, offScreen.height);
       }
     };
 
