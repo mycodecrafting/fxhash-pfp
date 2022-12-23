@@ -1,4 +1,5 @@
 #!/bin/bash
+cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"
 echo "Generating profile picture token, please wait!"
 npm i --silent >/dev/null
 npm run build --silent >/dev/null
